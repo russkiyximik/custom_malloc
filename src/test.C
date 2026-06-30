@@ -2,6 +2,20 @@
 #include <stdio.h>
 #include <string.h>
 
+void* heap_start = NULL;
+
+void* own_malloc (size_t len) {
+    void* allocated_address = sbrk(len);
+    heap_start = (heap_start == NULL) ? allocated_address : heap_start;
+    return allocated_address;
+}
+
+int own_free_all() {
+    if (heap_start == NULL) return 0;
+    brk(heap_start);
+    return 1;
+}
+
 int main() {
     const char* message = "This is my heap message";
     size_t len = strlen(message) + 1; // don't forget \0
@@ -26,6 +40,16 @@ int main() {
     char* over_mem = (char*) sbrk(sizeof(char) * over_len);
     strcpy(over_mem, overwrite);
     printf("%s\n", over_mem);
+    
+
+
+
+    const char* new_message = "This is a rudimentary malloc!";
+    size_t size = strlen(new_message);
+    char* address = (char*) own_malloc((size + 1) * sizeof(char)); // \0
+
+    strcpy(address, new_message);
+    printf("%i\n",own_free_all());
 
     return 0;
 }
